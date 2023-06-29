@@ -39,10 +39,61 @@ public class MeteoDAO {
 		}
 	}
 
-	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
+//	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
+//
+//		return null;
+//	}
 
-		return null;
+	public List<Rilevamento> getAvgRilevamentiMese (int mese) {
+		List<Rilevamento> risultato= new ArrayList<>();
+		
+		try {
+			Connection conn= ConnectDB.getConnection();
+			String sql= "SELECT s.Localita, MONTHNAME(s.`Data`) AS Mese, AVG(Umidita) AS UmiditaMedia FROM situazione s WHERE MONTH(s.`Data`)=? GROUP BY(s.Localita)";
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, mese);
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				Rilevamento ril= new Rilevamento(rs.getString("Localita"), rs.getString("Mese"), rs.getDouble("UmiditaMedia"));
+				risultato.add(ril);
+			}
+			
+			conn.close();
+			return risultato;
+		} 
+		
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-
+	
+	public List<Rilevamento> getRilevamentiPrimiQuindiMese(int mese) {
+		List<Rilevamento> risutato= new ArrayList<>();
+		
+		try {
+			Connection conn= ConnectDB.getConnection();
+			String sql= "SELECT s.Localita, DAY(s.`Data`) AS Giorno, s.Umidita FROM situazione s WHERE MONTH(s.`Data`)=? AND DAY(s.`Data`)<16";
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, mese);
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				Rilevamento ril= new Rilevamento(rs.getString("Localita"), rs.getInt("Giorno"), rs.getInt("Umidita"));
+				risutato.add(ril);
+			}
+			
+			conn.close();
+			return risutato;
+		} 
+		
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 }
